@@ -2,6 +2,7 @@ module EventSystem.EventSystemSpec where
 
 import "event-system" EventSystem.EventSystem (EventSystem (..), dispatch)
 
+import "base" Control.Arrow (Arrow (..))
 import "base" Data.Functor.Identity (Identity (..))
 import "hspec" Test.Hspec (Spec, describe, it, shouldBe)
 
@@ -18,3 +19,6 @@ spec = describe "Event System" $ do
   describe "dispatch" $ do
     it "executes the listeners" $ do
       dispatch fooBarEventSystem (Foo 23 "abc") `shouldBe` pure "Foo 23 \"abc\""
+
+    it "executes multiple listeners" $ do
+      dispatch (fooBarEventSystem &&& fooBarEventSystem) (Foo 23 "abc") `shouldBe` pure ("Foo 23 \"abc\"", "Foo 23 \"abc\"")
