@@ -41,12 +41,16 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+    - distributive
+    - profunctors
 
 tests:
   event-system-spec:
     main: Spec.hs
     source-dirs: spec
     dependencies:
+      - event-system
       - hspec
-      - hspec-hedgehog
+      # - hspec-hedgehog
     build-tools: hspec-discover:hspec-discover
