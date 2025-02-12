@@ -25,7 +25,7 @@ extra-source-files:
 
 library
   exposed-modules:
-      EventSystem.EventSystem
+      EventSystem.EventHandler
   other-modules:
       Paths_event_system
   hs-source-dirs:
@@ -45,7 +45,7 @@ test-suite event-system-spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      EventSystem.EventSystemSpec
+      EventSystem.EventHandlerSpec
       Paths_event_system
   hs-source-dirs:
       spec
