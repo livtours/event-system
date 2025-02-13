@@ -26,6 +26,9 @@ extra-source-files:
 library
   exposed-modules:
       EventSystem.EventHandler
+      EventSystem.Transport
+      EventSystem.Transport.InMemory
+      EventSystem.Transport.Sync
   other-modules:
       Paths_event_system
   hs-source-dirs:
@@ -46,6 +49,9 @@ test-suite event-system-spec
   main-is: Spec.hs
   other-modules:
       EventSystem.EventHandlerSpec
+      EventSystem.FooBarEvent
+      EventSystem.Transport.InMemorySpec
+      EventSystem.Transport.SyncSpec
       Paths_event_system
   hs-source-dirs:
       spec
