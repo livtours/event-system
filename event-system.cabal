@@ -28,6 +28,7 @@ library
       EventSystem.EventHandler
       EventSystem.Transport
       EventSystem.Transport.InMemory
+      EventSystem.Transport.Sqlite
       EventSystem.Transport.Sync
   other-modules:
       Paths_event_system
@@ -39,9 +40,12 @@ library
       PackageImports
   ghc-options: -Werror -Weverything -Wno-safe -Wno-unsafe -Wno-missing-safe-haskell-mode -Wno-implicit-prelude -Wno-missing-export-lists -Wno-missing-home-modules -Wno-missing-import-lists -Wno-all-missed-specialisations -Wno-prepositive-qualified-module -Wno-missing-kind-signatures
   build-depends:
-      base >=4.15 && <4.21
+      aeson
+    , base >=4.15 && <4.21
+    , bytestring
     , distributive
     , profunctors
+    , sqlite-simple
   default-language: GHC2021
 
 test-suite event-system-spec
@@ -51,6 +55,7 @@ test-suite event-system-spec
       EventSystem.EventHandlerSpec
       EventSystem.FooBarEvent
       EventSystem.Transport.InMemorySpec
+      EventSystem.Transport.SqliteSpec
       EventSystem.Transport.SyncSpec
       Paths_event_system
   hs-source-dirs:
@@ -63,7 +68,9 @@ test-suite event-system-spec
   build-tool-depends:
       hspec-discover:hspec-discover
   build-depends:
-      base >=4.15 && <4.21
+      aeson
+    , base >=4.15 && <4.21
+    , directory
     , event-system
     , hspec
   default-language: GHC2021

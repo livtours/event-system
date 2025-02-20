@@ -42,6 +42,9 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+    - aeson
+    - bytestring
+    - sqlite-simple
     - distributive
     - profunctors
 
@@ -50,7 +53,8 @@ tests:
     main: Spec.hs
     source-dirs: spec
     dependencies:
+      - aeson
       - event-system
+      - directory
       - hspec
-      # - hspec-hedgehog
     build-tools: hspec-discover:hspec-discover
