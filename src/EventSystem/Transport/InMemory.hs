@@ -1,10 +1,9 @@
 module EventSystem.Transport.InMemory where
 
 import EventSystem.EventHandler (EventHandler (..))
-import EventSystem.Transport (Sender (..))
+import EventSystem.Transport (Receiver (..), Sender (..))
 
 import "base" Control.Monad.IO.Class (MonadIO (..))
-import "base" Data.Traversable (for)
 import "base" GHC.Conc (TVar, atomically, newTVarIO, readTVar, writeTVar)
 
 data InMemoryTransport m event a = InMemoryTransport
@@ -13,22 +12,23 @@ data InMemoryTransport m event a = InMemoryTransport
   }
   deriving stock (Functor)
 
-instance (MonadIO m) => Sender m event () (InMemoryTransport m event a) where
-  send :: InMemoryTransport m event a -> event -> m ()
+instance Sender InMemoryTransport m event a IO () where
+  send :: InMemoryTransport m event a -> event -> IO ()
   send (InMemoryTransport queue _) event =
     liftIO . atomically $ do
       events <- readTVar queue
       writeTVar queue (events ++ [event])
 
-process :: (MonadIO m, Monoid a) => InMemoryTransport m event a -> m a
-process (InMemoryTransport queue (EventHandler handler)) = do
-  -- pull events from the queue
-  -- TODO: add a mechanism for ackowledging and retrying?
-  events <- liftIO . atomically $ do
-    events <- readTVar queue
-    writeTVar queue []
-    pure events
-  mconcat <$> for events handler
+instance (MonadIO n) => Receiver InMemoryTransport m event a n where
+  receive :: InMemoryTransport m event a -> n [event]
+  receive (InMemoryTransport queue _) =
+    liftIO . atomically $ do
+      events <- readTVar queue
+      writeTVar queue []
+      pure events
+
+  handler :: InMemoryTransport m event a -> EventHandler m event a
+  handler = eventHandler
 
 inMemoryTransport :: EventHandler m event a -> IO (InMemoryTransport m event a)
 inMemoryTransport eventHandler =

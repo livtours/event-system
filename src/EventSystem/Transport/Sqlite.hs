@@ -3,12 +3,11 @@
 module EventSystem.Transport.Sqlite where
 
 import EventSystem.EventHandler (EventHandler (..))
-import EventSystem.Transport (Sender (..))
+import EventSystem.Transport (Receiver (..), Sender (..))
 
 import "aeson" Data.Aeson (FromJSON, ToJSON, decode, encode)
 import "base" Control.Monad (MonadPlus (mzero))
 import "base" Control.Monad.IO.Class (MonadIO (..))
-import "base" Data.Traversable (for)
 import "bytestring" Data.ByteString (toStrict)
 import "sqlite-simple" Database.SQLite.Simple (FromRow (..), SQLData (..), ToRow (..), execute, execute_, query_, withConnection)
 import "sqlite-simple" Database.SQLite.Simple.FromRow (RowParser, field)
@@ -33,31 +32,33 @@ instance (FromJSON event) => FromRow (RawEvent event) where
       Nothing -> mzero
       Just event -> pure $ RawEvent event
 
-instance (MonadIO m, ToJSON event) => Sender m event () (SqliteTransport m event a) where
-  send :: SqliteTransport m event a -> event -> m ()
+instance (ToJSON event, MonadIO n) => Sender SqliteTransport m event a n () where
+  send :: SqliteTransport m event a -> event -> n ()
   send (SqliteTransport connectionString _) event =
+    liftIO $
+      withConnection connectionString $
+        \connection -> do
+          execute_
+            connection
+            "CREATE TABLE IF NOT EXISTS events (event BLOB NOT NULL);"
+          execute
+            connection
+            "INSERT INTO events (event) VALUES (?)"
+            (RawEvent event)
+
+instance (FromJSON event, MonadIO n) => Receiver SqliteTransport m event a n where
+  receive :: SqliteTransport m event a -> n [event]
+  receive (SqliteTransport connectionString _) =
     liftIO . withConnection connectionString $
       \connection -> do
         execute_
           connection
           "CREATE TABLE IF NOT EXISTS events (event BLOB NOT NULL);"
-        execute
-          connection
-          "INSERT INTO events (event) VALUES (?)"
-          (RawEvent event)
+        rawEvents <-
+          query_
+            connection
+            "SELECT event FROM events"
+        pure $ refined <$> rawEvents
 
-process :: (MonadIO m, Monoid a, FromJSON event) => SqliteTransport m event a -> m a
-process (SqliteTransport connectionString (EventHandler handler)) = do
-  -- pull events from the database
-  -- TODO: add a mechanism for ackowledging and retrying?
-  events <- liftIO . withConnection connectionString $
-    \connection -> do
-      execute_
-        connection
-        "CREATE TABLE IF NOT EXISTS events (event BLOB NOT NULL);"
-      rawEvents <-
-        query_
-          connection
-          "SELECT event FROM events"
-      pure $ refined <$> rawEvents
-  mconcat <$> for events handler
+  handler :: SqliteTransport m event a -> EventHandler m event a
+  handler = eventHandler

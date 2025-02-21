@@ -2,8 +2,8 @@ module EventSystem.Transport.InMemorySpec where
 
 import EventSystem.FooBarEvent
 
-import "event-system" EventSystem.Transport (Sender (..))
-import "event-system" EventSystem.Transport.InMemory (inMemoryTransport, process)
+import "event-system" EventSystem.Transport (Sender (..), process)
+import "event-system" EventSystem.Transport.InMemory (inMemoryTransport)
 
 import "base" Data.List (singleton)
 import "hspec" Test.Hspec (Spec, describe, it, shouldBe)

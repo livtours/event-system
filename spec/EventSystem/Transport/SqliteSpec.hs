@@ -2,8 +2,8 @@ module EventSystem.Transport.SqliteSpec where
 
 import EventSystem.FooBarEvent
 
-import "event-system" EventSystem.Transport (Sender (..))
-import "event-system" EventSystem.Transport.Sqlite (SqliteTransport (..), process)
+import "event-system" EventSystem.Transport (Sender (..), process)
+import "event-system" EventSystem.Transport.Sqlite (SqliteTransport (..))
 
 import "base" Control.Exception (bracket_)
 import "base" Data.List (singleton)
