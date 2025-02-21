@@ -58,6 +58,9 @@ instance (FromJSON event, MonadIO n) => Receiver SqliteTransport m event a n whe
           query_
             connection
             "SELECT event FROM events"
+        execute_
+          connection
+          "DELETE FROM events"
         pure $ refined <$> rawEvents
 
   handler :: SqliteTransport m event a -> EventHandler m event a
