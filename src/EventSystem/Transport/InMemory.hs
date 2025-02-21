@@ -12,8 +12,8 @@ data InMemoryTransport m event a = InMemoryTransport
   }
   deriving stock (Functor)
 
-instance Sender InMemoryTransport m event a IO () where
-  send :: InMemoryTransport m event a -> event -> IO ()
+instance (MonadIO n) => Sender InMemoryTransport m event a n () where
+  send :: InMemoryTransport m event a -> event -> n ()
   send (InMemoryTransport queue _) event =
     liftIO . atomically $ do
       events <- readTVar queue
