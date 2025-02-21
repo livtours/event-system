@@ -12,12 +12,14 @@ import "bytestring" Data.ByteString (toStrict)
 import "sqlite-simple" Database.SQLite.Simple (FromRow (..), SQLData (..), ToRow (..), execute, execute_, query_, withConnection)
 import "sqlite-simple" Database.SQLite.Simple.FromRow (RowParser, field)
 
+-- | A `SqliteTransport` stores the event, maybe unsurprisingly, in a table in a `SQLite` database, so that they can be processed later
 data SqliteTransport m event a = SqliteTransport
   { sqliteConnectionString :: String
   , eventHandler :: EventHandler m event a
   }
   deriving stock (Functor)
 
+-- | newtype used to define `ToRow` and `FromRow` instances for events
 newtype RawEvent event = RawEvent {refined :: event}
 
 instance (ToJSON event) => ToRow (RawEvent event) where
@@ -32,6 +34,8 @@ instance (FromJSON event) => FromRow (RawEvent event) where
       Nothing -> mzero
       Just event -> pure $ RawEvent event
 
+-- | Sending a message with the `SqliteTransport` stores it in the @events@ table of a SQLite database identified by the `connectionString`.
+-- The operation happens in the `IO` monad
 instance (ToJSON event, MonadIO n) => Sender SqliteTransport m event a n () where
   send :: SqliteTransport m event a -> event -> n ()
   send (SqliteTransport connectionString _) event =
@@ -46,6 +50,8 @@ instance (ToJSON event, MonadIO n) => Sender SqliteTransport m event a n () wher
             "INSERT INTO events (event) VALUES (?)"
             (RawEvent event)
 
+-- | Receiving a message with the `SqliteTransport` queries the @events@ table, retrieves all the rows and then empties it
+-- The operation happens in the `IO` monad
 instance (FromJSON event, MonadIO n) => Receiver SqliteTransport m event a n where
   receive :: SqliteTransport m event a -> n [event]
   receive (SqliteTransport connectionString _) =

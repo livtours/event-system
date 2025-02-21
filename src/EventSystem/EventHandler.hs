@@ -15,9 +15,9 @@ import "profunctors" Data.Profunctor.Traversing (Traversing (..))
 import "profunctors" Data.Profunctor.Unsafe (Profunctor (..))
 import "base" Prelude hiding (id, (.))
 
--- | A EventHandler is nothing else but a function which takes an event an produces some effects returning a result
+-- | An `EventHandler` is nothing else but a function which takes an event an produces some effects returning a result
 --
--- The function could be extremely complicated and defined in terms of the aggregation of many simpler EventHandlers
+-- The function could be extremely complicated and defined in terms of the aggregation of many simpler `EventHandler`s
 newtype EventHandler m event a = EventHandler {dispatch :: event -> m a}
 
 instance (Functor m) => Profunctor (EventHandler m) where
