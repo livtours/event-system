@@ -27,6 +27,7 @@ library
   exposed-modules:
       EventSystem.EventHandler
       EventSystem.Transport
+      EventSystem.Transport.Forked
       EventSystem.Transport.InMemory
       EventSystem.Transport.Sqlite
       EventSystem.Transport.Sync
@@ -44,6 +45,8 @@ library
     , base >=4.15 && <4.21
     , bytestring
     , distributive
+    , lifted-base
+    , monad-control
     , profunctors
     , sqlite-simple
   default-language: GHC2021
