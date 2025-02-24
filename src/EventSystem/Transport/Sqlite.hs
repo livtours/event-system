@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module EventSystem.Transport.Sqlite where
 
@@ -7,7 +8,6 @@ import EventSystem.Transport (Receiver (..), Sender (..))
 
 import "aeson" Data.Aeson (FromJSON, ToJSON, decode, encode)
 import "base" Control.Monad (MonadPlus (mzero))
-import "base" Control.Monad.IO.Class (MonadIO (..))
 import "bytestring" Data.ByteString (toStrict)
 import "sqlite-simple" Database.SQLite.Simple (FromRow (..), SQLData (..), ToRow (..), execute, execute_, query_, withConnection)
 import "sqlite-simple" Database.SQLite.Simple.FromRow (RowParser, field)
@@ -36,26 +36,28 @@ instance (FromJSON event) => FromRow (RawEvent event) where
 
 -- | Sending a message with the `SqliteTransport` stores it in the @events@ table of a SQLite database identified by the `connectionString`.
 -- The operation happens in the `IO` monad
-instance (ToJSON event, MonadIO n) => Sender SqliteTransport m event a n () where
-  send :: SqliteTransport m event a -> event -> n ()
+instance (ToJSON event) => Sender SqliteTransport m event a where
+  type SendResult SqliteTransport a = ()
+  type SendContext SqliteTransport m = IO
+  send :: SqliteTransport m event a -> event -> IO ()
   send (SqliteTransport connectionString _) event =
-    liftIO $
-      withConnection connectionString $
-        \connection -> do
-          execute_
-            connection
-            "CREATE TABLE IF NOT EXISTS events (event BLOB NOT NULL);"
-          execute
-            connection
-            "INSERT INTO events (event) VALUES (?)"
-            (RawEvent event)
+    withConnection connectionString $
+      \connection -> do
+        execute_
+          connection
+          "CREATE TABLE IF NOT EXISTS events (event BLOB NOT NULL);"
+        execute
+          connection
+          "INSERT INTO events (event) VALUES (?)"
+          (RawEvent event)
 
 -- | Receiving a message with the `SqliteTransport` queries the @events@ table, retrieves all the rows and then empties it
 -- The operation happens in the `IO` monad
-instance (FromJSON event, MonadIO n) => Receiver SqliteTransport m event a n where
-  receive :: SqliteTransport m event a -> n [event]
+instance (FromJSON event) => Receiver SqliteTransport m event a where
+  type ReceiverContext SqliteTransport m = IO
+  receive :: SqliteTransport m event a -> IO [event]
   receive (SqliteTransport connectionString _) =
-    liftIO . withConnection connectionString $
+    withConnection connectionString $
       \connection -> do
         execute_
           connection

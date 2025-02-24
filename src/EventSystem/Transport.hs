@@ -1,10 +1,12 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module EventSystem.Transport where
 
-import Data.Traversable (for)
 import EventSystem.EventHandler (EventHandler (..))
+
+import "base" Data.Kind (Type)
+import "base" Data.Traversable (for)
 
 -- | A `Sender` receives an event and processes it immediately
 --
@@ -14,10 +16,10 @@ import EventSystem.EventHandler (EventHandler (..))
 -- @transport@ is the `Transport` itself
 -- @m@ is the context in which the handler of the `Transport` operates
 -- @event@ is the type of events which can be sent by the `Sender`
--- @a@ is the type of the result of the handler of the `Transport`
--- @b@ is the potential result of the `send` operation
-class Sender transport m event a n b | transport a -> b where
-  send :: transport m event a -> event -> n b
+class Sender transport m event a where
+  type SendContext transport m :: Type -> Type
+  type SendResult transport a
+  send :: transport m event a -> event -> (SendContext transport m) (SendResult transport a)
 
 -- | A `Receiver` is able to retrieve events and process them
 --
@@ -25,12 +27,12 @@ class Sender transport m event a n b | transport a -> b where
 -- @m@ is the context in which the handler of the `Transport` operates
 -- @event@ is the type of events which can be sent by the `Sender`
 -- @a@ is the type of the result of the handler of the `Transport`
--- @n@ is the context in which the events are retrieved
-class Receiver transport m event a n where
-  receive :: transport m event a -> n [event]
+class Receiver transport m event a where
+  type ReceiverContext transport m :: Type -> Type
+  receive :: transport m event a -> (ReceiverContext transport m) [event]
   handler :: transport m event a -> EventHandler m event a
 
-process :: forall transport m event a. (Receiver transport m event a m, Monad m, Monoid a) => transport m event a -> m a
+process :: forall transport m event a. (ReceiverContext transport m ~ m, Receiver transport m event a, Monad m, Monoid a) => transport m event a -> m a
 process receiver = do
   events <- receive receiver
-  mconcat <$> for events (dispatch $ handler @transport @m @event @a @m receiver)
+  mconcat <$> for events (dispatch $ handler @transport @m @event @a receiver)

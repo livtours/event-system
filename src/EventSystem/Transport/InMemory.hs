@@ -1,9 +1,10 @@
+{-# LANGUAGE TypeFamilies #-}
+
 module EventSystem.Transport.InMemory where
 
 import EventSystem.EventHandler (EventHandler (..))
 import EventSystem.Transport (Receiver (..), Sender (..))
 
-import "base" Control.Monad.IO.Class (MonadIO (..))
 import "base" GHC.Conc (TVar, atomically, newTVarIO, readTVar, writeTVar)
 
 -- | An `InMemoryTransport` stores the event in an in-memory queue, so that they can be processed later
@@ -14,18 +15,21 @@ data InMemoryTransport m event a = InMemoryTransport
   deriving stock (Functor)
 
 -- | Sending a message with the `InMemoryTransport` stores it in an in-memory queue and operates in the `IO` monad
-instance (MonadIO n) => Sender InMemoryTransport m event a n () where
-  send :: InMemoryTransport m event a -> event -> n ()
+instance Sender InMemoryTransport m event a where
+  type SendResult InMemoryTransport a = ()
+  type SendContext InMemoryTransport m = IO
+  send :: InMemoryTransport m event a -> event -> IO ()
   send (InMemoryTransport queue _) event =
-    liftIO . atomically $ do
+    atomically $ do
       events <- readTVar queue
       writeTVar queue (events ++ [event])
 
 -- | Receiving messages with the `InMemoryTransport` retrieves all the messages present in the queue operating in the `IO` monad
-instance (MonadIO n) => Receiver InMemoryTransport m event a n where
-  receive :: InMemoryTransport m event a -> n [event]
+instance Receiver InMemoryTransport m event a where
+  type ReceiverContext InMemoryTransport m = IO
+  receive :: InMemoryTransport m event a -> IO [event]
   receive (InMemoryTransport queue _) =
-    liftIO . atomically $ do
+    atomically $ do
       events <- readTVar queue
       writeTVar queue []
       pure events
