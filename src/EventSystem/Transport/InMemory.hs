@@ -16,8 +16,7 @@ data InMemoryTransport m event a = InMemoryTransport
 
 -- | Sending a message with the `InMemoryTransport` stores it in an in-memory queue and operates in the `IO` monad
 instance Sender InMemoryTransport m event a where
-  type SendResult InMemoryTransport a = ()
-  type SendContext InMemoryTransport m = IO
+  type SendResult InMemoryTransport m a = IO ()
   send :: InMemoryTransport m event a -> event -> IO ()
   send (InMemoryTransport queue _) event =
     atomically $ do
@@ -27,6 +26,7 @@ instance Sender InMemoryTransport m event a where
 -- | Receiving messages with the `InMemoryTransport` retrieves all the messages present in the queue operating in the `IO` monad
 instance Receiver InMemoryTransport m event a where
   type ReceiverContext InMemoryTransport m = IO
+  type HandlerResult InMemoryTransport a = a
   receive :: InMemoryTransport m event a -> IO [event]
   receive (InMemoryTransport queue _) =
     atomically $ do

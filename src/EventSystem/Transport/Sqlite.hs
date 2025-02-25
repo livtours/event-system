@@ -37,8 +37,7 @@ instance (FromJSON event) => FromRow (RawEvent event) where
 -- | Sending a message with the `SqliteTransport` stores it in the @events@ table of a SQLite database identified by the `connectionString`.
 -- The operation happens in the `IO` monad
 instance (ToJSON event) => Sender SqliteTransport m event a where
-  type SendResult SqliteTransport a = ()
-  type SendContext SqliteTransport m = IO
+  type SendResult SqliteTransport m a = IO ()
   send :: SqliteTransport m event a -> event -> IO ()
   send (SqliteTransport connectionString _) event =
     withConnection connectionString $
@@ -55,6 +54,7 @@ instance (ToJSON event) => Sender SqliteTransport m event a where
 -- The operation happens in the `IO` monad
 instance (FromJSON event) => Receiver SqliteTransport m event a where
   type ReceiverContext SqliteTransport m = IO
+  type HandlerResult SqliteTransport a = a
   receive :: SqliteTransport m event a -> IO [event]
   receive (SqliteTransport connectionString _) =
     withConnection connectionString $

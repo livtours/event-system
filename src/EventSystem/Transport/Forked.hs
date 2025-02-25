@@ -13,8 +13,7 @@ import "monad-control" Control.Monad.Trans.Control (MonadBaseControl)
 newtype ForkedTransport m event a = ForkedTransport (EventHandler m event a)
 
 instance (MonadBaseControl IO m) => Sender ForkedTransport m event () where
-  type SendResult ForkedTransport () = ThreadId
-  type SendContext ForkedTransport m = m
+  type SendResult ForkedTransport m () = m ThreadId
   send :: ForkedTransport m event () -> event -> m ThreadId
   send (ForkedTransport (EventHandler eventHandler)) event =
     fork $ eventHandler event

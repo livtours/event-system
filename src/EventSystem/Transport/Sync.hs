@@ -12,7 +12,6 @@ newtype SyncTransport m event a = SyncTransport (EventHandler m event a)
 
 -- | A `SyncTransport` can just send events and produce a result according to its `EventHandler`
 instance Sender SyncTransport m event (a :: Type) where
-  type SendResult SyncTransport a = a
-  type SendContext SyncTransport m = m
+  type SendResult SyncTransport m a = m a
   send :: SyncTransport m event a -> event -> m a
   send (SyncTransport (EventHandler eventHandler)) = eventHandler

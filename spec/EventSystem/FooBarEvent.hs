@@ -10,7 +10,7 @@ import "base" Data.Functor.Identity (Identity (..))
 data FooBarEvent
   = Foo Int String
   | Bar String Double
-  deriving stock (Show)
+  deriving stock (Eq, Show)
 
 $(deriveJSON defaultOptions ''FooBarEvent)
 
