@@ -48,7 +48,9 @@ library:
     - distributive
     - lifted-base
     - monad-control
+    - persistent
     - profunctors
+    - resource-pool
 
 tests:
   event-system-spec:

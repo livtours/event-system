@@ -38,6 +38,9 @@
             cabal-install
             fourmolu
           ];
+          nativeBuildInputs = with pkgs; [
+            zlib
+          ];
           inputsFrom = builtins.attrValues self.packages.${system};
         };
       }

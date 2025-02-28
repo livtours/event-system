@@ -30,6 +30,7 @@ library
       EventSystem.Transport.Combined
       EventSystem.Transport.Forked
       EventSystem.Transport.InMemory
+      EventSystem.Transport.PersistSQL
       EventSystem.Transport.Sqlite
       EventSystem.Transport.Sync
   other-modules:
@@ -48,7 +49,9 @@ library
     , distributive
     , lifted-base
     , monad-control
+    , persistent
     , profunctors
+    , resource-pool
     , sqlite-simple
   default-language: GHC2021
 
