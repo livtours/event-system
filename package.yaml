@@ -47,8 +47,12 @@ library:
     - sqlite-simple
     - distributive
     - lifted-base
+    - mmorph
     - monad-control
+    #- persistent
     - profunctors
+    #- resource-pool
+    - transformers
 
 tests:
   event-system-spec:

@@ -32,6 +32,8 @@ library
       EventSystem.Transport.InMemory
       EventSystem.Transport.Sqlite
       EventSystem.Transport.Sync
+      NatTrans
+      RebindedDo
   other-modules:
       Paths_event_system
   hs-source-dirs:
@@ -47,9 +49,11 @@ library
     , bytestring
     , distributive
     , lifted-base
+    , mmorph
     , monad-control
     , profunctors
     , sqlite-simple
+    , transformers
   default-language: GHC2021
 
 test-suite event-system-spec
