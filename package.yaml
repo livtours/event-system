@@ -49,9 +49,8 @@ library:
     - lifted-base
     - mmorph
     - monad-control
-    #- persistent
+    - mtl
     - profunctors
-    #- resource-pool
     - transformers
 
 tests:
